@@ -1,9 +1,9 @@
 locals {
-  vpc_id           = "vpc-2a361d42"
-  subnet_id        = "subnet-2394cd4b"
+  vpc_id           = "Your vpc id"
+  subnet_id        = "Your subnet id"
   ssh_user         = "ec2-user"
-  key_name         = "devops"
-  private_key_path = "~/devops.pem"
+  key_name         = "keyname"
+  private_key_path = "Key path"
 }
 
 # variable "aws_access_key" {}
@@ -43,12 +43,12 @@ resource "aws_security_group" "wordpress" {
   }
 }
 
-resource "aws_instance" "nginx" {
+resource "aws_instance" "wordpress" {
   ami                         = "ami-0101734ab73bd9e15"
   subnet_id                   = local.subnet_id
   instance_type               = "t2.micro"
   associate_public_ip_address = true
-  security_groups             = [aws_security_group.nginx.id]
+  security_groups             = [aws_security_group.wordpress.id]
   key_name                    = local.key_name
 
   provisioner "remote-exec" {
@@ -58,15 +58,15 @@ resource "aws_instance" "nginx" {
       type        = "ssh"
       user        = local.ssh_user
       private_key = file(local.private_key_path)
-      host        = aws_instance.nginx.public_ip
+      host        = aws_instance.wordpress.public_ip
     }
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook  -i ${aws_instance.nginx.public_ip}, --private-key ${local.private_key_path} prometheus.yaml"
+    command = "ansible-playbook  -i ${aws_instance.nginx.public_ip}, --private-key ${local.private_key_path} wordpress.yaml"
   }
 }
 
-output "nginx_ip" {
-  value = aws_instance.nginx.public_ip
+output "wordpress_ip" {
+  value = aws_instance.wordpress.public_ip
 }
